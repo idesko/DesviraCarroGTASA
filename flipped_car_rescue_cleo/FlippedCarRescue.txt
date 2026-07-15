@@ -1,0 +1,125 @@
+{$CLEO .cs}
+{$NOSOURCE}
+0000:
+
+// Flipped Car Rescue
+// Press W/A/S/D while a car is flipped to try restoring it upright.
+// This keeps the original vehicle alive and only nudges handling/rotation.
+// The flipped-fire behavior is patched so the car should not burn/explode
+// just because it is upside down.
+
+0@ = -1 // current player car
+1@ = 2500 // cooldown timer in ms
+2@ = 0 // rescue timer in ms
+3@ = 0 // memory patch flag
+10@ = 0 // stable flip timer in frames
+
+:MAIN
+wait 0
+
+// Apply the anti-burn patch once.
+if
+    0039: 3@ == 0
+then
+    // Original "Dont Burn Flipped Cars" patch, kept in-script so the mod is self-contained.
+    0A8C: write_memory 0x6A776B size 2 value 0xD8DD virtual_protect 1
+    0A8C: write_memory 0x6A776D size 4 value 0x90909090 virtual_protect 1
+    0A8C: write_memory 0x570E7F size 2 value 0xD8DD virtual_protect 1
+    0A8C: write_memory 0x570E81 size 4 value 0x90909090 virtual_protect 1
+    3@ = 1
+end
+
+// Timers.
+if
+    0019: 1@ > 0
+then
+    1@ -= 1
+end
+
+if
+    0019: 2@ > 0
+then
+    2@ -= 1
+end
+
+if
+    0256: player $PLAYER_CHAR defined
+then
+    if
+        056D: actor $PLAYER_ACTOR defined
+    then
+        if
+            00DF: actor $PLAYER_ACTOR driving
+        then
+            03C0: 0@ = actor $PLAYER_ACTOR car
+
+            if
+                056E: car 0@ defined
+            then
+                if
+                    01F4: car 0@ flipped
+                then
+                    // Require the car to stay flipped for a few seconds before reacting.
+                    if
+                        10@ < 300
+                    then
+                        10@ += 1
+                    end
+
+                    // While flipped, make the car a bit easier to recover.
+                    0423: set_car 0@ improved_handling_to 4.0
+
+                    // If the player presses movement after the delay, open a short rescue window.
+                    if and
+                        0039: 1@ == 0
+                        0039: 2@ == 0
+                        10@ > 220
+                    then
+                        if or
+                            0AB0: key_pressed 87 // W
+                            0AB0: key_pressed 65 // A
+                            0AB0: key_pressed 83 // S
+                            0AB0: key_pressed 68 // D
+                        then
+                            gosub @START_RESCUE
+                        end
+                    end
+
+                    // During the rescue window, apply only torque/handling, not entity replacement.
+                    if
+                        0019: 2@ > 0
+                    then
+                        if or
+                            0AB0: key_pressed 87 // W
+                            0AB0: key_pressed 83 // S
+                        then
+                            07DB: set_car 0@ rotation_velocity_XYZ -0.22 0.0 0.0 through_center_of_mass
+                        end
+                        if or
+                            0AB0: key_pressed 65 // A
+                            0AB0: key_pressed 68 // D
+                        then
+                            07DA: set_car 0@ rotation_velocity_XYZ 0.0 0.22 0.0 through_center_of_body
+                        end
+                    end
+                else
+                    10@ = 0
+                    2@ = 0
+                    0423: set_car 0@ improved_handling_to 1.0
+                end
+            end
+        else
+            0@ = -1
+            2@ = 0
+            10@ = 0
+        end
+    end
+end
+
+goto @MAIN
+
+:START_RESCUE
+// Small cooldown so holding the key does not spam the state every frame.
+1@ = 2000
+2@ = 1400
+return

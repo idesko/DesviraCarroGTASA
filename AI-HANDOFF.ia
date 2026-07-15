@@ -1,0 +1,43 @@
+Projeto: DesviraCarroGTASA
+
+Objetivo principal:
+- criar e iterar mods para GTA San Andreas
+- foco atual: carro capotado nao pegar fogo e tentar voltar com W/A/S/D
+
+Estado funcional atual:
+- patch anti-fogo aplicado com sucesso
+- script CLEO atual nao recria o carro
+- o carro original permanece na entidade
+- o mod usa delay de estabilidade antes de reagir
+- ao apertar W/A/S/D, aplica torque e reforco de handling
+
+Arquivos importantes:
+- `README.md`
+- `flipped_car_rescue_cleo/FlippedCarRescue.txt`
+- `flipped_car_rescue_cleo/FlippedCarRescue.cs`
+- `modloader/Flipped Car Rescue - WASD/CLEO/FlippedCarRescue.cs`
+- `modloader/criador_de_mods/README.md`
+- `modloader/criador_de_mods/FLIPPED-CAR-RESCUE.md`
+
+Regras aprendidas:
+- nao recriar o carro, porque isso pode quebrar missoes
+- preferir torque/handling e manter a entidade original
+- usar delay maior para nao disparar no meio do capotamento
+- manter a documentacao sempre sincronizada com a versao ativa
+
+Pistas tecnicas:
+- `01F4` detecta carro flipped
+- `03C0` pega o carro do CJ
+- `0423` ajusta improved handling
+- `07DA` e `07DB` aplicam rotacao
+- o patch anti-fogo veio do mod `Dont Burn Flipped Cars`
+
+Notas para proxima iteracao:
+- se o carro reagir cedo demais, aumentar o delay
+- se reagir pouco, aumentar levemente o torque
+- se o comportamento ficar agressivo, reduzir `improved_handling_to`
+
+Evitar:
+- substituir a entidade do carro
+- depender de fisica exagerada ou efeitos permanentes
+- documentacao divergente do script ativo

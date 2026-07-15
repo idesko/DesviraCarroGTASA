@@ -1,0 +1,25 @@
+<mode id="vc_sbl" title="GTA VC (SBL)" game="vc" type="default">
+    <data>@sb:\data\vc_sbl\</data>
+    <!-- main files -->
+    <library autoupdate="yes">@sb:\data\vc_sbl\vc.json</library>
+    <classes autoupdate="yes">@sb:\data\vc_sbl\classes.db</classes>
+    <enums autoupdate="yes">@sb:\data\vc_sbl\enums.txt</enums>
+
+    <constants>@sb:\data\vc_sbl\constants.txt</constants>
+    <ide>@game:\data\default.ide</ide>
+    <ide base="@game:\">@game:\data\gta_vc.dat</ide>
+    <keywords>@sb:\data\vc_sbl\keywords.txt</keywords>
+
+    <!-- decompiling -->
+    <missions>@sb:\data\vc_sbl\missions.txt</missions>
+    <variables>@sb:\data\vc_sbl\CustomVariables.ini</variables>
+    <text format="vc">@game:\text\american.gxt</text>
+
+    <!-- ide -->
+    <templates type="default">@sb:\data\vc_sbl\templates.txt</templates>
+    <templates type="custom">@sb:\data\vc_sbl\templates.custom.txt</templates>
+
+    <!-- compiling -->
+    <copy-directory type="scm">@game:\data</copy-directory>
+    <copy-directory type="cleo">@game:\CLEO</copy-directory>
+</mode>

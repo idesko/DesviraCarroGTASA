@@ -1,0 +1,25 @@
+<mode id="gta3_sbl" title="GTA III (SBL)" game="gta3" type="default">
+    <data>@sb:\data\gta3_sbl\</data>
+        <!-- main files -->
+    <library autoupdate="yes">@sb:\data\gta3_sbl\gta3.json</library>
+    <classes autoupdate="yes">@sb:\data\gta3_sbl\classes.db</classes>
+    <enums autoupdate="yes">@sb:\data\gta3_sbl\enums.txt</enums>
+
+    <constants>@sb:\data\gta3_sbl\constants.txt</constants>
+    <ide>@game:\data\default.ide</ide>
+    <ide base="@game:\">@game:\data\gta3.dat</ide>
+    <keywords>@sb:\data\gta3_sbl\keywords.txt</keywords>
+
+    <!-- decompiling -->
+    <missions>@sb:\data\gta3_sbl\missions.txt</missions>
+    <variables>@sb:\data\gta3_sbl\CustomVariables.ini</variables>
+    <text format="gta3">@game:\text\american.gxt</text>
+    
+    <!-- ide -->
+    <templates type="default">@sb:\data\gta3_sbl\templates.txt</templates>
+    <templates type="custom">@sb:\data\gta3_sbl\templates.custom.txt</templates>
+    
+    <!-- compiling -->
+    <copy-directory type="scm">@game:\data</copy-directory>
+    <copy-directory type="cleo">@game:\CLEO</copy-directory>
+</mode>

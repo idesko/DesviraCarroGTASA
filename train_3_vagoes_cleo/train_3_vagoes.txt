@@ -1,0 +1,45 @@
+{$CLEO .cs}
+{$NOSOURCE}
+0000:
+
+// Trem curto de 3 veiculos no T
+// Type 6 = freight + 2 freiflat, totalizando 3 carros no trem.
+
+0@ = 2500 // cooldown
+1@ = -1   // ultimo trem criado
+
+:MAIN
+wait 0
+
+if
+    0256: player $PLAYER_CHAR defined
+then
+    if
+        056D: actor $PLAYER_ACTOR defined
+    then
+        if and
+            0AB0: key_pressed 84
+            0018: 0@ > 2000
+        then
+            gosub @SPAWN_TRAIN
+        end
+    end
+end
+
+0@ += 1
+goto @MAIN
+
+:SPAWN_TRAIN
+0@ = 0
+
+// Remove qualquer trem scriptado anterior antes de criar outro.
+06D9: destroy_defined_trains
+
+// Cria um trem curto de 3 veiculos em um trecho de trilho conhecido.
+06D8: 1@ = create_train_at 1880.06 -1953.67 12.44 type 6 direction 1
+
+// Mantem o trem controlado pelo script sem aceleração brusca.
+06DC: set_train 1@ acc 0.0
+06DD: set_train 1@ speed 0.0
+
+return

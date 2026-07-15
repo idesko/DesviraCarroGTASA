@@ -1,0 +1,168 @@
+{$CLEO .cs}
+{$NOSOURCE}
+0000:
+
+// Rocket Man on T
+// Spawns one MALE01 ped in front of CJ, gives him a jetpack task,
+// then forces a stable forward flight until timeout/distance cleanup.
+// Model ID 7 = male01 from data\peds.ide.
+
+// 0@  = active ped handle
+// 1@  = spawn X
+// 2@  = spawn Y
+// 3@  = spawn Z
+// 4@  = forward point X
+// 5@  = forward point Y
+// 6@  = forward point Z
+// 7@  = heading captured from CJ
+// 8@  = reserved
+// 9@  = reserved
+// 10@ = reserved
+// 11@ = reserved
+// 12@ = reserved
+// 13@ = ped X
+// 14@ = ped Y
+// 15@ = ped Z
+// 16@ = player X
+// 17@ = player Y
+// 18@ = player Z
+// 19@ = distance from player
+
+0@ = 0
+32@ = 2500 // cooldown timer, starts ready
+33@ = 0    // lifetime timer
+
+:ROCKET_MAN_MAIN
+wait 0
+
+if
+    0256: player $PLAYER_CHAR defined
+jf @ROCKET_MAN_MAIN
+
+if
+    056D: actor $PLAYER_ACTOR defined
+jf @ROCKET_MAN_MAIN
+
+// Keep updating the currently active flyer.
+if
+    056D: actor 0@ defined
+then
+    gosub @UPDATE_FLYER
+end
+
+// Only allow a new spawn when:
+// - T is pressed
+// - cooldown is over
+// - there is no active NPC already
+// - CJ is not inside a vehicle
+if and
+    0AB0: key_pressed 84
+    0018: 32@ > 2000
+    856D: not actor 0@ defined
+    80DF: not actor $PLAYER_ACTOR driving
+then
+    gosub @SPAWN_FLYER
+end
+
+goto @ROCKET_MAN_MAIN
+
+:SPAWN_FLYER
+// Reset cooldown and lifetime as soon as we accept the key press.
+32@ = 0
+33@ = 0
+
+// Load the MALE01 model before spawning to avoid invalid-actor crashes.
+0247: request_model 7
+
+:WAIT_MALE01
+wait 0
+if
+    0248: model 7 available
+jf @WAIT_MALE01
+
+// Spawn about 3 meters in front of CJ and slightly above the ground/water.
+04C4: create_coordinate 1@ 2@ 3@ from_actor $PLAYER_ACTOR offset 0.0 3.0 1.0
+009A: 0@ = create_char 4 model 7 at 1@ 2@ 3@ store_to 0@
+0249: release_model 7
+
+// If the ped could not be created for any reason, safely abort.
+if
+    856D: not actor 0@ defined
+then
+    return
+end
+
+// Capture CJ heading once so the rocket man keeps going straight away.
+0172: 7@ = actor $PLAYER_ACTOR z_angle
+0173: set_actor 0@ z_angle_to 7@
+
+// Clear any random AI and immediately switch the ped into jetpack mode.
+0792: clear_char_tasks_immediately 0@
+07A7: task_jetpack 0@
+
+// Safety/behavior flags to keep the NPC from reacting like a normal ped.
+0350: set_char_stay_in_same_place 0@ to 1
+0568: set_char_never_targetted 0@ untargetable 1
+0619: set_char_collision 0@ to 0
+02AB: set_char_proofs 0@ BP 1 FP 1 EP 1 CP 1 MP 1
+
+// Kick-start the flight right away with a first forward/upward offset.
+04C4: create_coordinate 13@ 14@ 15@ from_actor 0@ offset 0.0 1.2 0.18
+00A1: put_actor 0@ at 13@ 14@ 15@
+
+return
+
+:UPDATE_FLYER
+// Clean up if the ped died or became invalid.
+if
+    856D: not actor 0@ defined
+then
+    gosub @CLEANUP_FLYER
+    return
+end
+
+if
+    0118: actor 0@ dead
+then
+    gosub @CLEANUP_FLYER
+    return
+end
+
+// Hold heading and move the ped by a tiny forward/upward offset every frame
+// so he keeps flying like a straight "rocket man" instead of wandering.
+0173: set_actor 0@ z_angle_to 7@
+04C4: create_coordinate 13@ 14@ 15@ from_actor 0@ offset 0.0 0.90 0.12
+00A1: put_actor 0@ at 13@ 14@ 15@
+
+// Distance-based cleanup.
+00A0: store_actor 0@ position_to 13@ 14@ 15@
+00A0: store_actor $PLAYER_ACTOR position_to 16@ 17@ 18@
+050A: get_distance_between_coords_3d 13@ 14@ 15@ and 16@ 17@ 18@ store_to 19@
+
+if
+    0025: 19@ > 350.0
+then
+    gosub @CLEANUP_FLYER
+    return
+end
+
+// Time-based cleanup after about 15 seconds.
+if
+    0018: 33@ > 15000
+then
+    gosub @CLEANUP_FLYER
+    return
+end
+
+return
+
+:CLEANUP_FLYER
+if
+    056D: actor 0@ defined
+then
+    0792: clear_char_tasks_immediately 0@
+    009B: delete_actor 0@
+end
+
+0@ = 0
+return

@@ -1,0 +1,20 @@
+# Build and editor noise
+*.obj
+*.pdb
+*.ilk
+*.log
+*.tmp
+*.bak
+*.cache
+*.user
+*.suo
+
+# Common archive leftovers
+*.zip
+*.7z
+*.rar
+
+# Keep source/docs only
+_tmp_gtaimg/
+**/bin/
+**/obj/
